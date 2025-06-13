@@ -32,7 +32,7 @@ frontend/
 
 ```bash
 git clone https://github.com/Roboteky/mkulima_bora.git
-cd mkulima/frontend/mkulima_bora
+cd mkulima_bora/frontend/mkulima_bora
 ```
 
 ### 2. Install Dependencies
