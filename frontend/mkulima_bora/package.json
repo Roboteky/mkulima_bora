@@ -13,6 +13,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@syncfusion/ej2-react-circulargauge": "^29.2.4",
     "@tailwindcss/vite": "^4.1.8",
     "chart.js": "^4.4.9",
     "framer-motion": "^12.16.0",

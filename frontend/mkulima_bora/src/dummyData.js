@@ -4,7 +4,7 @@ export const farmData ={
   "timestamp": "2025-06-13T12:27:00+03:00",
   "soil_health": {
     "current": {
-      "ph": 7.5,
+      "ph": 1 ,
       "nitrogen": 25.3,
       "phosphorus": 15.7,
       "potassium": 20.1,
