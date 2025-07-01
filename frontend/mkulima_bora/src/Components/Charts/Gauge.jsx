@@ -1,209 +1,142 @@
-import { Doughnut } from "react-chartjs-2";
-import { ArcElement, Tooltip, Legend, Chart as ChartJS } from "chart.js";
-import { farmData } from "../../dummyData";
+import React from "react";
+import ReactSpeedometer from "react-d3-speedometer";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
-
-const PHGuage = () => {
-  const currentPH = farmData.soil_health.current.ph;
-  const phValues = [
-    { value: 0, color: '#8B0000', label: 'pH 0' },
-    { value: 1, color: '#DC143C', label: 'pH 1' },
-    { value: 2, color: '#FF0000', label: 'pH 2' },
-    { value: 3, color: '#FF4500', label: 'pH 3' },
-    { value: 4, color: '#FF6347', label: 'pH 4' },
-    { value: 5, color: '#FF8C00', label: 'pH 5' },
-    { value: 6, color: '#FFA500', label: 'pH 6' },
-    { value: 7, color: '#32CD32', label: 'pH 7' },
-    { value: 8, color: '#00CED1', label: 'pH 8' },
-    { value: 9, color: '#1E90FF', label: 'pH 9' },
-    { value: 10, color: '#0000FF', label: 'pH 10' },
-    { value: 11, color: '#4169E1', label: 'pH 11' },
-    { value: 12, color: '#8A2BE2', label: 'pH 12' },
-    { value: 13, color: '#9932CC', label: 'pH 13' },
-    { value: 14, color: '#800080', label: 'pH 14' }
-  ];
-
-  // Function to get color for a given pH value
-  const getColorForPH = (ph) => {
-    // Find the closest pH value in our scale
-    const roundedPH = Math.round(ph);
-    return phValues.find(item => item.value === roundedPH) || phValues[7]; // Default to neutral
-  };
-
-  const currentStatus = getColorForPH(currentPH);
-
-  // Custom plugin for needle with dynamic color
-  const needlePlugin = {
-  id: 'needle',
-  afterDatasetsDraw: (chart) => {
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return;
-    
-    const centerX = (chartArea.left + chartArea.right) / 2;
-    const centerY = (chartArea.top + chartArea.bottom) / 2 + 20;
-    
-    // Calculate needle angle - corrected mapping
-    const phValue = Math.max(0, Math.min(14, currentPH));
-    const angle = Math.PI * (phValue / 14 - 0.5); // Now maps 0-14 to -π/2 to π/2
-    
-    // Get current color for the needle
-    const needleColor = getColorForPH(currentPH).color;
-    
-    // Draw needle
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(angle);
-    
-    // Needle line (pointing upwards after rotation)
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -80);
-    ctx.strokeStyle = needleColor;
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    // Needle center circle
-    ctx.beginPath();
-    ctx.arc(0, 0, 8, 0, 8 * Math.PI);
-    ctx.fillStyle = needleColor;
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    ctx.restore();
+// Simulating the farm data import
+const farmData = {
+  "farmer_id": "user_one",
+  "setup": "SETUP A",
+  "timestamp": "2025-06-13T12:27:00+03:00",
+  "soil_health": {
+    "current": {
+      "ph": 1,
+      "nitrogen": 25.3,
+      "phosphorus": 15.7,
+      "potassium": 20.1,
+      "moisture": 45.2,
+      "temperature": 23.8
+    },
+    "historical": [
+      {
+        "timestamp": "2025-06-13T00:00:00+03:00",
+        "ph": 6.4,
+        "nitrogen": 24.8,
+        "phosphorus": 15.5,
+        "potassium": 19.8,
+        "moisture": 44.0,
+        "temperature": 22.5
+      },
+      {
+        "timestamp": "2025-06-12T00:00:00+03:00",
+        "ph": 6.6,
+        "nitrogen": 25.0,
+        "phosphorus": 16.0,
+        "potassium": 20.5,
+        "moisture": 46.1,
+        "temperature": 24.0
+      },
+      {
+        "timestamp": "2025-06-11T00:00:00+03:00",
+        "ph": 6.3,
+        "nitrogen": 24.5,
+        "phosphorus": 15.2,
+        "potassium": 19.5,
+        "moisture": 43.8,
+        "temperature": 23.0
+      }
+    ]
   }
 };
 
-  // Chart data
-  const data = {
-    labels: phValues.map(ph => ph.label),
-    datasets: [{
-      data: new Array(15).fill(1),
-      backgroundColor: phValues.map(ph => ph.color),
-      borderWidth: 1,
-      borderColor: '#ffffff',
-      circumference: 180,
-      rotation: 270,
-    }]
-  };
-
-  // Chart options
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false }
-    },
-    cutout: '75%',
-    animation: {
-      animateRotate: true,
-      duration: 2000
-    }
-  };
-
+export const PhGauge = ({ title, value }) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto border border-gray-100">
-      {/* Header */}
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-bold text-gray-800 mb-1">Soil pH Level</h3>
-        <p className="text-sm text-gray-500">Farm: {farmData.setup}</p>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Gauge Container */}
-        <div className="flex-1">
-          <div className="relative">
-            <div className="h-48 relative">
-              <Doughnut 
-                data={data} 
-                options={options} 
-                plugins={[needlePlugin]}
-                redraw // Ensure chart redraws when data changes
-              />
-            </div>
-            
-            {/* pH Value Display */}
-            <div className="absolute inset-0 flex items-center justify-center mt-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold" style={{ color: currentStatus.color }}>
-                  {currentPH.toFixed(1)}
-                </div>
-                <div className="text-sm text-gray-500">pH Level</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Status Information */}
-          <div className="mt-4 text-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white" 
-                 style={{ backgroundColor: currentStatus.color }}>
-              <div className="w-2 h-2 rounded-full mr-2 bg-white"></div>
-              Current: {currentStatus.label}
-            </div>
-          </div>
-
-          {/* Scale Labels */}
-          <div className="mt-4 flex justify-between text-xs text-gray-400">
-            <span>0 (Very Acidic)</span>
-            <span>7 (Neutral)</span>
-            <span>14 (Very Alkaline)</span>
-          </div>
-        </div>
-
-        {/* pH Color Key */}
-        <div className="lg:w-64">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">pH Color Key</h4>
-          <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
-            {phValues.map((ph, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <div 
-                  className="w-4 h-4 rounded border border-gray-200"
-                  style={{ backgroundColor: ph.color }}
-                ></div>
-                <span className="text-xs text-gray-600 flex-1">{ph.label}</span>
-                {Math.round(currentPH) === ph.value && (
-                  <span className="text-xs font-bold text-green-600">← Current</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Historical pH Trend */}
-      <div className="mt-6 border-t border-gray-100 pt-4">
-        <div className="text-sm font-semibold text-gray-700 mb-3">Recent pH History</div>
-        <div className="flex justify-between items-center">
-          {farmData.soil_health.historical.slice(-3).map((record, index) => {
-            const date = new Date(record.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const status = getColorForPH(record.ph);
-            return (
-              <div key={index} className="text-center">
-                <div className="text-xs text-gray-400 mb-1">{date}</div>
-                <div 
-                  className="inline-flex items-center px-2 py-1 rounded text-xs font-bold text-white"
-                  style={{ backgroundColor: status.color }}
-                >
-                  {record.ph.toFixed(1)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Timestamp */}
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-400">
-          Last updated: {new Date(farmData.timestamp).toLocaleString()}
-        </p>
+    <div className="rounded-lg col-span-1 h-56 flex flex-col justify-center items-center dark:bg-slate-500 bg-white dark:bg-opacity-20 shadow-sm border">
+      <p className="font-bold text-slate-600 dark:text-slate-300 uppercase text-sm tracking-wide w-full text-left px-4 py-2">
+        {title}
+      </p>
+      <div className="h-48 w-full flex justify-center items-center p-2">
+        <ReactSpeedometer
+          width={270}
+          height={180}
+          ringWidth={40}
+          needleHeightRatio={0.75}
+          value={value ? value : 0}
+          minValue={0}
+          maxValue={14}
+          maxSegmentLabels={14}
+          segments={14}
+          segmentColors={[
+            "#ff4444", // 0-1: Very acidic (red)
+            "#ff6644", // 1-2: Strongly acidic
+            "#ff8844", // 2-3: Moderately acidic
+            "#ffaa44", // 3-4: Moderately acidic
+            "#ffcc44", // 4-5: Slightly acidic
+            "#ffee44", // 5-6: Slightly acidic
+            "#ccff44", // 6-7: Nearly neutral (yellow-green)
+            "#88ff44", // 7-8: Neutral to slightly alkaline (green)
+            "#44ff44", // 8-9: Slightly alkaline
+            "#44ff88", // 9-10: Moderately alkaline
+            "#44ffcc", // 10-11: Strongly alkaline
+            "#44ccff", // 11-12: Very alkaline
+            "#4488ff", // 12-13: Extremely alkaline
+            "#4444ff"  // 13-14: Extremely alkaline (blue)
+          ]}
+          needleColor={"#57575c"}
+          textColor={"#374151"}
+          labelFontSize={"10px"}
+          valueTextFontSize={"14px"}
+          currentValueText={`pH Value: ${value ? value.toFixed(1) : "Updating..."}`}
+          customSegmentStops={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]}
+        />
       </div>
     </div>
   );
 };
 
-export default PHGuage;
+// Demo component showing the pH gauge with farm data
+const PhGaugeDemo = () => {
+  const currentPh = farmData.soil_health.current.ph;
+  
+  return (
+    <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">
+          Soil pH Monitor
+        </h1>
+        
+        <PhGauge 
+          title="Soil pH Level" 
+          value={currentPh} 
+        />
+        
+        <div className="mt-4 p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            pH Analysis
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Current pH: <span className="font-medium text-red-600">{currentPh}</span>
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Status: <span className="font-medium text-red-600">Very Acidic</span>
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+            Optimal range for most crops: 6.0 - 7.0
+          </p>
+        </div>
+        
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-2">
+            Recent pH History
+          </h4>
+          {farmData.soil_health.historical.slice(0, 3).map((record, index) => (
+            <div key={index} className="flex justify-between text-xs text-blue-700 dark:text-blue-400">
+              <span>{new Date(record.timestamp).toLocaleDateString()}</span>
+              <span>pH: {record.ph}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PhGaugeDemo;
